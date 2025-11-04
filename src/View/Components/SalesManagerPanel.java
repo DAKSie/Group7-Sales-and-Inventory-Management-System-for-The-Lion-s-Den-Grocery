@@ -1,15 +1,15 @@
 package View.Components;
 
+import View.Utils.*;
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import View.Utils.*;
 
 public class SalesManagerPanel extends JPanel {
 
     private String _currentUser;
-    private JComboBox<String> itemIdCombo;
-    private BetterInputs itemNameInput, quantityInput;
+    private JComboBox<String> itemNameCombo;
+    private BetterInputs itemIdInput, quantityInput;
     private DefaultTableModel salesTableModel;
     private JTable salesTable;
 
@@ -89,57 +89,21 @@ public class SalesManagerPanel extends JPanel {
         labelY += labelOffset;
         inputPanel.add(new BetterLabels(labelX, labelY, "Quantity: "));
         int textFieldY = 10, textFieldX = 120, textFieldOffset = 32;
-        itemIdCombo = new JComboBox<>(); //ADD ITEMS HERE
-        styleModernComboBox(itemIdCombo);
-        itemIdCombo.setBounds(textFieldX, textFieldY, 120, 28);
+        // Item ID is a read-only input; Item Name is the combo box now
+        itemIdInput = new BetterInputs(textFieldX, textFieldY, "itemId", "");
+        itemIdInput.setEditable(true);
+        inputPanel.add(itemIdInput);
         textFieldY += textFieldOffset;
-        itemNameInput = new BetterInputs(textFieldX, textFieldY, "itemName", "");
-        itemNameInput.setEditable(false);
-        inputPanel.add(itemNameInput);
-        // updateItemNameField();
-        System.out.println("Update Item Name Field");
-        itemIdCombo.addActionListener(e -> System.out.println("updateItemNameField"));
+        itemNameCombo = new JComboBox<>(); // ADD ITEMS HERE (item names)
+        styleModernComboBox(itemNameCombo);
+        itemNameCombo.setBounds(textFieldX, textFieldY, 120, 28);
+        inputPanel.add(itemNameCombo);
+        // updateItemIdField()
+        System.out.println("Update Item ID Field");
+        itemNameCombo.addActionListener(e -> System.out.println("updateItemIdField"));
         textFieldY += textFieldOffset;
         quantityInput = new BetterInputs(textFieldX, textFieldY, "quantity", "");
-        ((JTextField)quantityInput).setDocument(new javax.swing.text.PlainDocument() {
-            @Override
-            public void insertString(int offs, String str, javax.swing.text.AttributeSet a) throws javax.swing.text.BadLocationException {
-                if (str == null) return;
-                String current = getText(0, getLength());
-                StringBuilder sb = new StringBuilder(current);
-                sb.insert(offs, str);
-                if (sb.toString().matches("\\d*")) {
-                    int maxStock = getAvailableStock();
-                    int val = 0;
-                    try { val = Integer.parseInt(sb.toString()); } catch (Exception e) {}
-                    if (val > maxStock) {
-                        super.remove(0, getLength());
-                        super.insertString(0, String.valueOf(maxStock), a);
-                    } else {
-                        super.insertString(offs, str, a);
-                    }
-                }
-            }
-            @Override
-            public void replace(int offs, int length, String str, javax.swing.text.AttributeSet a) throws javax.swing.text.BadLocationException {
-                String current = getText(0, getLength());
-                StringBuilder sb = new StringBuilder(current);
-                sb.replace(offs, offs + length, str == null ? "" : str);
-                if (sb.toString().matches("\\d*")) {
-                    int maxStock = getAvailableStock();
-                    int val = 0;
-                    try { val = Integer.parseInt(sb.toString()); } catch (Exception e) {}
-                    if (val > maxStock) {
-                        super.remove(0, getLength());
-                        super.insertString(0, String.valueOf(maxStock), a);
-                    } else {
-                        super.replace(offs, length, str, a);
-                    }
-                }
-            }
-        });
         inputPanel.add(quantityInput);
-        inputPanel.add(itemIdCombo);
         // Buttons
         int buttonY = 250, buttonX = inputPanelWidth / 2 - 50, buttonOffset = 40;
         BetterButtons addButton = new BetterButtons(buttonX, buttonY, "addButton", "Add");

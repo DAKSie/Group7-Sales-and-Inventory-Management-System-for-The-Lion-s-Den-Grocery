@@ -3,8 +3,6 @@ package View;
 import java.awt.*;
 import javax.swing.*;
 
-import View.LoginView;
-
 public class RegisterView extends JFrame{
     private JTextField empIdField;
     private JTextField nameField;
@@ -174,7 +172,7 @@ public class RegisterView extends JFrame{
     }
 
     private void LoginHandler() {
-        new LoginView();
+        new LoginViewDesigner();
         this.dispose();
     }
 }

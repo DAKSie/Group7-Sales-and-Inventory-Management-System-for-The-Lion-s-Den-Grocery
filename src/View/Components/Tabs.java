@@ -12,4 +12,8 @@ public class Tabs {
     public JPanel SalesManager() {
         return new SalesManagerPanel(_currentUser);
     }
+
+    public JPanel ProductManager() {
+        return new ProductManagerPanel(_currentUser);
+    }
 }

@@ -1,10 +1,9 @@
 package View;
 
-import View.Components.*;
 import java.awt.Color;
 import javax.swing.*;
 
-public class LoginView extends JFrame {
+public class LoginViewDesigner extends JFrame {
     public static String _currentUser;
 
     private JTextField loginUsernameField;
@@ -12,7 +11,7 @@ public class LoginView extends JFrame {
     private JButton loginLoginButton;
     private JButton loginRegisterButton;
 
-    public LoginView () {
+    public LoginViewDesigner () {
         setTitle("Login");
         setSize(370, 320);
         setResizable(false);
@@ -114,7 +113,7 @@ public class LoginView extends JFrame {
     }
 
     private void LoginHandler() {
-        new MainWindow("Rico");
+        new MainWindowDesigner("Rico");
         this.dispose();
     }
 }

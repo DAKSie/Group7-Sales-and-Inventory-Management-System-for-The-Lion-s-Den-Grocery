@@ -1,7 +1,7 @@
-import View.LoginView;
+import View.LoginViewDesigner;
 
 class Main {
     public static void main(String args[]) {
-        LoginView loginView = new LoginView(); 
+        LoginViewDesigner loginView = new LoginViewDesigner(); 
     }
 }

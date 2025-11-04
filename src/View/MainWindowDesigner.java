@@ -1,21 +1,19 @@
 package View;
 
-import javax.swing.*;
+import View.Components.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import javax.swing.*;
 
-import View.Components.*;
-import View.Utils.*;
-
-public class MainWindow extends JFrame {
+public class MainWindowDesigner extends JFrame {
     private String _currentUser;
 
-    public MainWindow(String currentUser) {
+    public MainWindowDesigner(String currentUser) {
         this._currentUser = currentUser;
         setTitle("Manager");
         setSize(1200, 600);
@@ -30,7 +28,7 @@ public class MainWindow extends JFrame {
         JTabbedPane tabbedPane = new JTabbedPane();
         Tabs tabs = new Tabs(currentUser);
 
-        // ProductManagerPanel productManagerPanel = new ProductManagerPanel(currentUser);
+        ProductManagerPanel productManagerPanel = new ProductManagerPanel(currentUser);
         // InventoryManagerPanel inventoryManagerPanel = new InventoryManagerPanel(currentUser);
         SalesManagerPanel salesManagerPanel = new SalesManagerPanel(currentUser);
         // ReportsPanel reportsPanel = new ReportsPanel();
@@ -42,7 +40,7 @@ public class MainWindow extends JFrame {
         // Register SalesManagerPanel as a listener for product changes (for real-time dropdown update)
         // productManagerPanel.addPropertyChangeListener(salesManagerPanel);
 
-        // tabbedPane.addTab("Product Manager", productManagerPanel);
+        tabbedPane.addTab("Product Manager", productManagerPanel);
         // tabbedPane.addTab("Inventory Manager", inventoryManagerPanel);
         tabbedPane.addTab("Sales Manager", salesManagerPanel);
         // tabbedPane.addTab("Reports", reportsPanel);
