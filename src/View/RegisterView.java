@@ -3,6 +3,8 @@ package View;
 import java.awt.*;
 import javax.swing.*;
 
+import View.LoginView;
+
 public class RegisterView extends JFrame{
     private JTextField empIdField;
     private JTextField nameField;
@@ -13,8 +15,6 @@ public class RegisterView extends JFrame{
     private JButton registerLoginButton;
     private JButton registerRegisterButton;
 
-    public static final String USER_FILE = "database/users.txt";
-
     public RegisterView(){
         setTitle("Register");
         setSize(350, 520);
@@ -24,7 +24,7 @@ public class RegisterView extends JFrame{
         setLocationRelativeTo(null);
 
         // Application Logo (centered)
-        ImageIcon originalIcon = new ImageIcon("art/logo.png");
+        ImageIcon originalIcon = new ImageIcon("global/logo.png");
         Image scaledImage = originalIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
         setIconImage(originalIcon.getImage());
@@ -168,8 +168,13 @@ public class RegisterView extends JFrame{
         registerLoginButton.setForeground(new Color(0, 122, 255));
         registerLoginButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         add(registerLoginButton);
-        registerLoginButton.addActionListener(e -> System.out.println("Login"));
+        registerLoginButton.addActionListener(e -> LoginHandler());
 
         setVisible(true);
+    }
+
+    private void LoginHandler() {
+        new LoginView();
+        this.dispose();
     }
 }

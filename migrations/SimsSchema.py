@@ -26,7 +26,6 @@ TABLES['Product'] = (
       `product_id` INT AUTO_INCREMENT,
       `product_name` VARCHAR(255) NOT NULL,
       `product_brand` VARCHAR(255),
-      `product_price DECIMAL(10,2)` /* typo fix below */,
       `product_price` DECIMAL(10,2),
       `product_markup` DECIMAL(10,2),
       `product_stock` INT(11),
@@ -44,17 +43,12 @@ TABLES['Sales'] = (
       `sale_price` DECIMAL(10,2),
       `sale_quantity` INT(11),
       `sale_total` DECIMAL(10,2),
-      `sale_user` INT NOT NULL,
+      `sale_user` VARCHAR(255),
       PRIMARY KEY (`sale_id`),
       KEY `fk_sales_product` (`product_id`),
-      KEY `fk_sales_user` (`sale_user`),
       CONSTRAINT `fk_sales_product`
         FOREIGN KEY (`product_id`)
         REFERENCES `Product` (`product_id`)
-        ON DELETE RESTRICT ON UPDATE CASCADE,
-      CONSTRAINT `fk_sales_user`
-        FOREIGN KEY (`sale_user`)
-        REFERENCES `User` (`user_id`)
         ON DELETE RESTRICT ON UPDATE CASCADE
     ) ENGINE=InnoDB;
     """

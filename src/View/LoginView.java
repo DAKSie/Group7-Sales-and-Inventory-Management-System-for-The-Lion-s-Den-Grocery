@@ -1,10 +1,11 @@
 package View;
 
+import View.Components.*;
 import java.awt.Color;
 import javax.swing.*;
 
 public class LoginView extends JFrame {
-    public static String currentUser;
+    public static String _currentUser;
 
     private JTextField loginUsernameField;
     private JPasswordField loginPasswordField;
@@ -89,7 +90,7 @@ public class LoginView extends JFrame {
         loginLoginButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         loginLoginButton.setOpaque(true);
         add(loginLoginButton);
-        loginLoginButton.addActionListener(e -> System.out.println("Login"));
+        loginLoginButton.addActionListener(e -> LoginHandler());
 
         // Register Button (flat, blue text, no border, Apple style link)
         loginRegisterButton = new JButton("Register");
@@ -109,6 +110,11 @@ public class LoginView extends JFrame {
 
     private void RegisterHandler() {
         new RegisterView();
+        this.dispose();
+    }
+
+    private void LoginHandler() {
+        new MainWindow("Rico");
         this.dispose();
     }
 }
