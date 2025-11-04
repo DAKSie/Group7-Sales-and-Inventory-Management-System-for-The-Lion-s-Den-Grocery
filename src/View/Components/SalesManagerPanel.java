@@ -82,28 +82,31 @@ public class SalesManagerPanel extends JPanel {
         ));
         int inputPanelWidth = 270, inputPanelHeight = 475;
         inputPanel.setBounds(10, 10, inputPanelWidth, inputPanelHeight);
+        
+        // Labels
         int labelY = 10, labelX = 20, labelOffset = 32;
         inputPanel.add(new BetterLabels(labelX, labelY, "Item ID: "));
         labelY += labelOffset;
         inputPanel.add(new BetterLabels(labelX, labelY, "Item Name: "));
         labelY += labelOffset;
         inputPanel.add(new BetterLabels(labelX, labelY, "Quantity: "));
+        
+        // Inputs
         int textFieldY = 10, textFieldX = 120, textFieldOffset = 32;
-        // Item ID is a read-only input; Item Name is the combo box now
         itemIdInput = new BetterInputs(textFieldX, textFieldY, "itemId", "");
         itemIdInput.setEditable(true);
         inputPanel.add(itemIdInput);
         textFieldY += textFieldOffset;
-        itemNameCombo = new JComboBox<>(); // ADD ITEMS HERE (item names)
+        
+        itemNameCombo = new JComboBox<>(); // Placeholder data
         styleModernComboBox(itemNameCombo);
         itemNameCombo.setBounds(textFieldX, textFieldY, 120, 28);
         inputPanel.add(itemNameCombo);
-        // updateItemIdField()
-        System.out.println("Update Item ID Field");
-        itemNameCombo.addActionListener(e -> System.out.println("updateItemIdField"));
+        
         textFieldY += textFieldOffset;
         quantityInput = new BetterInputs(textFieldX, textFieldY, "quantity", "");
         inputPanel.add(quantityInput);
+        
         // Buttons
         int buttonY = 250, buttonX = inputPanelWidth / 2 - 50, buttonOffset = 40;
         BetterButtons addButton = new BetterButtons(buttonX, buttonY, "addButton", "Add");
@@ -111,19 +114,31 @@ public class SalesManagerPanel extends JPanel {
         BetterButtons removeButton = new BetterButtons(buttonX, buttonY, "removeButton", "Remove Item");
         buttonY += buttonOffset;
         BetterButtons confirmButton = new BetterButtons(buttonX, buttonY, "confirmButton", "Confirm");
+        
         addButton.setBackground(new Color(0, 122, 255));
         addButton.setForeground(Color.WHITE);
         removeButton.setBackground(new Color(220, 53, 69));
         removeButton.setForeground(Color.WHITE);
         confirmButton.setBackground(new Color(40, 167, 69));
         confirmButton.setForeground(Color.WHITE);
+        
         inputPanel.add(addButton);
         inputPanel.add(removeButton);
         inputPanel.add(confirmButton);
-        // Action Listeners
-        addButton.addActionListener(e -> System.out.println("addSaleRow"));
-        removeButton.addActionListener(e -> System.out.println("RemoveSelectedRows"));
-        confirmButton.addActionListener(e -> System.out.println("Confirm"));
+        
+        // Action Listeners (stubs only)
+        addButton.addActionListener(e -> {
+            // Add sale row logic would go here
+        });
+        
+        removeButton.addActionListener(e -> {
+            // Remove selected rows logic would go here
+        });
+        
+        confirmButton.addActionListener(e -> {
+            // Confirm sale logic would go here
+        });
+        
         return inputPanel;
     }
 
@@ -133,7 +148,6 @@ public class SalesManagerPanel extends JPanel {
         comboBox.setForeground(new Color(30, 30, 30));
         comboBox.setBorder(BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true));
         comboBox.setFocusable(false);
-        comboBox.setUI(new javax.swing.plaf.basic.BasicComboBoxUI());
         comboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -144,9 +158,5 @@ public class SalesManagerPanel extends JPanel {
                 return c;
             }
         });
-    }
-
-    private int getAvailableStock() {
-        return 5;
     }
 }

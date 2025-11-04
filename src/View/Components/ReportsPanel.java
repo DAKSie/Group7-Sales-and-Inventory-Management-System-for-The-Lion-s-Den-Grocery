@@ -153,37 +153,31 @@ public class ReportsPanel extends JPanel {
         productsModel.setRowCount(0);
         // Load products data logic would go here
         // Placeholder data for demonstration
-        productsModel.addRow(new Object[]{"P001", "Sample Product", "Sample Brand", "100.00", "20%", "50"});
     }
 
     private void loadInventory() {
         inventoryModel.setRowCount(0);
         // Load inventory data logic would go here
         // Placeholder data for demonstration
-        inventoryModel.addRow(new Object[]{"OR001", "2024-01-01", "User1", "Supplier A", "500.00"});
     }
 
     private void loadInventoryDetails() {
         inventoryDetailsModel.setRowCount(0);
         // Load inventory details data logic would go here
         // Placeholder data for demonstration
-        inventoryDetailsModel.addRow(new Object[]{"INV001", "P001", "10", "50.00", "500.00"});
     }
 
     private void loadSales() {
         salesModel.setRowCount(0);
         // Load sales data logic would go here
         // Placeholder data for demonstration
-        salesModel.addRow(new Object[]{"S001", "P001", "Sample Product", "100.00", "5", "500.00", "User1"});
     }
 
     private void updateSummary() {
         // Summary calculation logic would go here
-        summaryLabel.setText("Total Products: 1 | Total Inventory Added: 1 | Total Sales: 1 | Total Sales Amount: 500.00");
     }
 
     private void exportToCSV() {
         // Export to CSV logic would go here
-        JOptionPane.showMessageDialog(this, "Export functionality would be implemented here", "Export", JOptionPane.INFORMATION_MESSAGE);
     }
 }

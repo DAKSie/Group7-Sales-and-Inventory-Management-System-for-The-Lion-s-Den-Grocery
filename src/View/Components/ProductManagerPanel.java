@@ -5,15 +5,12 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-@SuppressWarnings("unused")
-public class ProductManagerPanel  extends JPanel {
+public class ProductManagerPanel extends JPanel {
     private String _currentUser;
-
     private DefaultTableModel inventoryTableModel;
     private JTable inventoryTable;
     private BetterInputs itemIdInput, itemNameInput, brandInput, priceInput;
     private JComboBox<String> markupCombo;
-    private int skibidi = 0;
 
     public ProductManagerPanel(String currentUser) {
         this._currentUser = currentUser;
@@ -42,7 +39,7 @@ public class ProductManagerPanel  extends JPanel {
                 return true;
             }
         };
-        // loadProductsFromFile(inventoryTableModel);
+        
         inventoryTable = new JTable(inventoryTableModel) {
             @Override
             public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
@@ -68,12 +65,15 @@ public class ProductManagerPanel  extends JPanel {
         inventoryTable.getTableHeader().setBackground(new Color(245, 247, 250));
         inventoryTable.getTableHeader().setForeground(new Color(60, 60, 60));
         inventoryTable.setGridColor(new Color(235, 235, 235));
+        
         JScrollPane tableScrollPane = new JScrollPane(inventoryTable);
         tableScrollPane.setBounds(10, 10, tablePanelWidth - 20, tablePanelHeight - 20);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true));
+        
         JComboBox<String> markupCombo = new JComboBox<>(new String[]{"0%", "10%", "15%", "20%", "25%"});
         styleModernComboBox(markupCombo);
         inventoryTable.getColumnModel().getColumn(4).setCellEditor(new DefaultCellEditor(markupCombo));
+        
         tablePanel.add(tableScrollPane);
         return tablePanel;
     }
@@ -88,6 +88,8 @@ public class ProductManagerPanel  extends JPanel {
         ));
         int inputPanelWidth = 270, inputPanelHeight = 475;
         inputPanel.setBounds(10, 10, inputPanelWidth, inputPanelHeight);
+        
+        // Labels
         int labelY = 10, labelX = 20, labelOffset = 32;
         inputPanel.add(new BetterLabels(labelX, labelY, "Item ID: "));
         labelY += labelOffset;
@@ -98,60 +100,35 @@ public class ProductManagerPanel  extends JPanel {
         inputPanel.add(new BetterLabels(labelX, labelY, "Price: "));
         labelY += labelOffset;
         inputPanel.add(new BetterLabels(labelX, labelY, "Price Markup: "));
+        
+        // Inputs
         int textFieldY = 10, textFieldX = 120, textFieldOffset = 32;
         itemIdInput = new BetterInputs(textFieldX, textFieldY, "itemId", "");
         itemIdInput.setEditable(false);
-        itemIdInput.setText(generateNextItemId());
+        itemIdInput.setText(""); // Placeholder ID
         textFieldY += textFieldOffset;
+        
         itemNameInput = new BetterInputs(textFieldX, textFieldY, "itemName", "");
         textFieldY += textFieldOffset;
+        
         brandInput = new BetterInputs(textFieldX, textFieldY, "brand", "");
         textFieldY += textFieldOffset;
+        
         priceInput = new BetterInputs(textFieldX, textFieldY, "price", "");
-        // Price validation
-        ((JTextField)priceInput).setDocument(new javax.swing.text.PlainDocument() {
-            @Override
-            public void insertString(int offs, String str, javax.swing.text.AttributeSet a) throws javax.swing.text.BadLocationException {
-                if (str == null) return;
-                String current = getText(0, getLength());
-                StringBuilder sb = new StringBuilder(current);
-                sb.insert(offs, str);
-                if (isValidPriceInput(sb.toString())) {
-                    super.insertString(offs, str, a);
-                }
-            }
-            @Override
-            public void replace(int offs, int length, String str, javax.swing.text.AttributeSet a) throws javax.swing.text.BadLocationException {
-                String current = getText(0, getLength());
-                StringBuilder sb = new StringBuilder(current);
-                sb.replace(offs, offs + length, str == null ? "" : str);
-                if (isValidPriceInput(sb.toString())) {
-                    super.replace(offs, length, str, a);
-                }
-            }
-        });
-        ((JTextField)priceInput).addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                String text = ((JTextField)priceInput).getText().trim();
-                if (!text.isEmpty()) {
-                    try {
-                        double value = Double.parseDouble(text);
-                        ((JTextField)priceInput).setText(String.format("%.2f", value));
-                    } catch (NumberFormatException ignored) {}
-                }
-            }
-        });
         textFieldY += textFieldOffset;
+        
         markupCombo = new JComboBox<>(new String[]{"10%", "15%", "20%", "25%"});
         styleModernComboBox(markupCombo);
         markupCombo.setBounds(textFieldX, textFieldY, 120, 28);
         markupCombo.setSelectedIndex(0);
+        
         inputPanel.add(itemIdInput);
         inputPanel.add(itemNameInput);
         inputPanel.add(brandInput);
         inputPanel.add(priceInput);
         inputPanel.add(markupCombo);
+        
+        // Buttons
         int buttonY = 250, buttonX = inputPanelWidth / 2 - 50, buttonOffset = 40;
         BetterButtons addButton = new BetterButtons(buttonX, buttonY, "addButton", "Add Item");
         buttonY += buttonOffset;
@@ -160,6 +137,7 @@ public class ProductManagerPanel  extends JPanel {
         BetterButtons deleteButton = new BetterButtons(buttonX, buttonY, "deleteButton", "Delete Item");
         buttonY += buttonOffset;
         BetterButtons clearButton = new BetterButtons(buttonX, buttonY, "clearButton", "Clear Fields");
+        
         addButton.setBackground(new Color(0, 122, 255));
         addButton.setForeground(Color.WHITE);
         updateButton.setBackground(new Color(40, 167, 69));
@@ -168,14 +146,29 @@ public class ProductManagerPanel  extends JPanel {
         deleteButton.setForeground(Color.WHITE);
         clearButton.setBackground(new Color(108, 117, 125));
         clearButton.setForeground(Color.WHITE);
-        addButton.addActionListener(e -> System.out.println("AddItem"));
-        updateButton.addActionListener(e -> System.out.println("UpdateItem"));
-        deleteButton.addActionListener(e -> System.out.println("DeleteItem"));
-        clearButton.addActionListener(e -> System.out.println("ClearItem"));
+        
+        // Action Listeners (stubs only)
+        addButton.addActionListener(e -> {
+            // Add item logic would go here
+        });
+        
+        updateButton.addActionListener(e -> {
+            // Update item logic would go here
+        });
+        
+        deleteButton.addActionListener(e -> {
+            // Delete item logic would go here
+        });
+        
+        clearButton.addActionListener(e -> {
+            // Clear fields logic would go here
+        });
+        
         inputPanel.add(addButton);
         inputPanel.add(updateButton);
         inputPanel.add(deleteButton);
         inputPanel.add(clearButton);
+        
         return inputPanel;
     }
 
@@ -185,7 +178,6 @@ public class ProductManagerPanel  extends JPanel {
         comboBox.setForeground(new Color(30, 30, 30));
         comboBox.setBorder(BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true));
         comboBox.setFocusable(false);
-        comboBox.setUI(new javax.swing.plaf.basic.BasicComboBoxUI());
         comboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -196,17 +188,5 @@ public class ProductManagerPanel  extends JPanel {
                 return c;
             }
         });
-    }
-
-    public String generateNextItemId() {
-        String sheesh = "";
-        skibidi++;
-        sheesh = Integer.toString(skibidi);
-        return sheesh;
-    }
-
-    private boolean isValidPriceInput(String text) {
-        if (text.isEmpty()) return true;
-        return text.matches("\\d*(\\.\\d{0,2})?");
     }
 }
