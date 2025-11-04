@@ -29,11 +29,11 @@ public class MainWindowDesigner extends JFrame {
         Tabs tabs = new Tabs(currentUser);
 
         ProductManagerPanel productManagerPanel = new ProductManagerPanel(currentUser);
-        // InventoryManagerPanel inventoryManagerPanel = new InventoryManagerPanel(currentUser);
+        InventoryManagerPanel inventoryManagerPanel = new InventoryManagerPanel(currentUser);
         SalesManagerPanel salesManagerPanel = new SalesManagerPanel(currentUser);
-        // ReportsPanel reportsPanel = new ReportsPanel();
+        ReportsPanel reportsPanel = new ReportsPanel();
 
-        // inventoryManagerPanel.setProductManagerPanel(productManagerPanel);
+        inventoryManagerPanel.setProductManagerPanel(productManagerPanel);
         // Register ProductManagerPanel as a listener for real-time updates
         // salesManagerPanel.addPropertyChangeListener(productManagerPanel);
         // inventoryManagerPanel.addPropertyChangeListener(productManagerPanel);
@@ -41,9 +41,9 @@ public class MainWindowDesigner extends JFrame {
         // productManagerPanel.addPropertyChangeListener(salesManagerPanel);
 
         tabbedPane.addTab("Product Manager", productManagerPanel);
-        // tabbedPane.addTab("Inventory Manager", inventoryManagerPanel);
+        tabbedPane.addTab("Inventory Manager", inventoryManagerPanel);
         tabbedPane.addTab("Sales Manager", salesManagerPanel);
-        // tabbedPane.addTab("Reports", reportsPanel);
+        tabbedPane.addTab("Reports", reportsPanel);
 
         tabbedPane.setBackground(new Color(245, 245, 245));
         tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 15));

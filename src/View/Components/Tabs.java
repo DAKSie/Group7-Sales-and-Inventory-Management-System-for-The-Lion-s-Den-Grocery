@@ -16,4 +16,8 @@ public class Tabs {
     public JPanel ProductManager() {
         return new ProductManagerPanel(_currentUser);
     }
+
+    public JPanel InventoryManager() {
+        return new InventoryManagerPanel(_currentUser);
+    }
 }
