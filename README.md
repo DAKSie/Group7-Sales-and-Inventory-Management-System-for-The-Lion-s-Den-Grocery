@@ -1,14 +1,15 @@
 # Group7 Sales and Inventory Management System for The Lion's Den Grocery
 
-[![Java](https://img.shields.io/badge/Java-93%25-blue.svg)](https://www.java.com/)
+[![Java](https://img.shields.io/badge/Java-92.6%25-blue.svg)](https://www.java.com/)
 [![Python](https://img.shields.io/badge/Python-6.6%25-yellow.svg)](https://www.python.org/)
-[![Batchfile](https://img.shields.io/badge/Batchfile-0.4%25-lightgrey.svg)](https://www.microsoft.com/windows)
+[![Batchfile](https://img.shields.io/badge/Batchfile-0.2%25-lightgrey.svg)](https://www.microsoft.com/windows)
+[![Bash](https://img.shields.io/badge/Bash-0.2%25-lightgrey.svg)](https://www.microsoft.com/windows)
 
 ## Overview
 
 **Local inventory & sales management app for small businesses. Tracks stock, records transactions, generates CSV reports. No internet required. Ideal for simple, offline operations.**
 
-This application is designed for small grocery stores, providing an easy way to track stock items, record sales transactions, and generate reports—**all without any internet dependency**. Built primarily in Java, with additional scripting and optional Python utilities.
+This application is designed for small grocery stores, providing an easy way to track stock items, record sales transactions, and generate reports, all without any internet dependency. Built primarily in Java, with additional scripting and optional Python utilities.
 
 ---
 
@@ -21,7 +22,6 @@ This application is designed for small grocery stores, providing an easy way to 
 - [CSV Reporting](#csv-reporting)
 - [Architecture](#architecture)
 - [Contributing](#contributing)
-- [License](#license)
 
 ---
 
@@ -40,8 +40,9 @@ This application is designed for small grocery stores, providing an easy way to 
 ## Requirements
 
 - **Java** (8 or higher)
-- **Python** (optional, for advanced reporting or scripting)
+- **Python** (3.12.5)
 - **Windows OS** (Batchfile scripts included; may work on other platforms with small adjustments)
+- **Bash** (Bash script included)
 - **No Internet Connection Required**
 
 ---
@@ -54,17 +55,28 @@ This application is designed for small grocery stores, providing an easy way to 
    cd Group7-Sales-and-Inventory-Management-System-for-The-Lion-s-Den-Grocery
    ```
 
-2. **Build the Java Application:**
-    We have implemented a run script for windows
-   - Or via command line:
-     ```bash
-     run
-     ```
+2. **Run the migrations script**
+    ```bash
+    py migrations\SimsSchema.py       
+    ```
 
-3. **(Optional) Set Up Python Scripts:**
+3. **Build the Java Application:** <br>
+    We have implemented a run script for 
+    
+    windows:
+    ```bash
+    compile_and_run_windows
+    ```
+    
+    bash:
+    ```bash
+    ./compile_and_run_bash.sh
+    ```
+
+4. **(Optional) Set Up Python Scripts:**
    - If you want enhanced reporting (see [CSV Reporting](#csv-reporting)), ensure you have Python 3+ installed.
 
-4. **Run:**
+5. **Run:**
    - Windows: double-click the provided batch file(s) or execute from terminal.
    - Other OS: run the Java application as per above.
 
@@ -84,7 +96,7 @@ This application is designed for small grocery stores, providing an easy way to 
 
 ## CSV Reporting
 
-- Find exported CSV files in the `reports/` directory.
+- Choose where to export your CSV file.
 - Format follows:  
   - Sales: Date, Item, Quantity Sold, Price, Total
   - Inventory: Item, Current Stock, Unit Price, Last Updated
@@ -97,10 +109,10 @@ This application is designed for small grocery stores, providing an easy way to 
 - **Java:** Main application logic, UI, and data storage
 - **Python:** Optional analytics and enhanced reporting scripts
 - **Batchfile:** Windows automation for launching the app and managing data
+- **Bashfile:** Automation for launching the application and managing
 - **Data Storage:** CSV files (readable, editable, and portable)
 
 ---
-
 ## Contributing
 
 Contributions, suggestions, and bug reports are welcome!
@@ -110,21 +122,6 @@ Contributions, suggestions, and bug reports are welcome!
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-Please abide by our [Code of Conduct](CODE_OF_CONDUCT.md) and ensure changes are tested locally.
-
----
-
-## License
-
-This project is licensed under the MIT License. See [`LICENSE`](LICENSE) for details.
-
----
-
-## Contact
-
-Maintainer: [DAKSie](https://github.com/DAKSie)  
-For help or discussion, open an [issue](https://github.com/DAKSie/Group7-Sales-and-Inventory-Management-System-for-The-Lion-s-Den-Grocery/issues).
 
 ---
 
