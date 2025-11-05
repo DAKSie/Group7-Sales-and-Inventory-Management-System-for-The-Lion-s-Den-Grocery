@@ -255,4 +255,34 @@ public class ProductController {
             System.err.println("Error closing resources: " + e.getMessage());
         }
     }
+
+    public int getProductStock(int productId) {
+        String sql = "SELECT product_stock FROM Product WHERE product_id = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBContext.getConnection();
+            if (conn == null) {
+                System.err.println("Failed to establish database connection");
+                return 0;
+            }
+            
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, productId);
+            rs = stmt.executeQuery();
+    
+            if (rs.next()) {
+                return rs.getInt("product_stock");
+            }
+    
+        } catch (SQLException e) {
+            System.err.println("Failed to fetch product stock: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            closeResources(stmt, conn, rs);
+        }
+        return 0;
+    }
 }

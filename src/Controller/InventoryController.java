@@ -7,7 +7,7 @@ import java.util.*;
 public class InventoryController {
     
     public boolean addInventory(Inventory inventory) {
-        String sql = "INSERT INTO Inventory (or_number, product_id, inventory_quantity, unit_price, inventory_price) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Inventory (or_number, product_id, product_supplier, inventory_quantity, unit_price, inventory_price) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement stmt = null;
         
@@ -25,9 +25,10 @@ public class InventoryController {
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, inventory.getOrNumber());
             stmt.setInt(2, inventory.getProductId());
-            stmt.setInt(3, inventory.getInventoryQuantity());
-            stmt.setDouble(4, inventory.getUnitPrice());
-            stmt.setDouble(5, inventory.getInventoryPrice());
+            stmt.setString(3, inventory.getProductSupplier());
+            stmt.setInt(4, inventory.getInventoryQuantity());
+            stmt.setDouble(5, inventory.getUnitPrice());
+            stmt.setDouble(6, inventory.getInventoryPrice());
             stmt.executeUpdate();
 
             // Update product stock - ADD the inventory quantity to product stock
@@ -88,6 +89,7 @@ public class InventoryController {
                     rs.getInt("inventory_id"),
                     rs.getString("or_number"),
                     rs.getInt("product_id"),
+                    rs.getString("product_supplier"),
                     rs.getInt("inventory_quantity"),
                     rs.getDouble("unit_price"),
                     rs.getDouble("inventory_price")
@@ -115,7 +117,7 @@ public class InventoryController {
         
         int stockDifference = inventory.getInventoryQuantity() - oldInventory.getInventoryQuantity();
         
-        String sql = "UPDATE Inventory SET or_number = ?, product_id = ?, inventory_quantity = ?, unit_price = ?, inventory_price = ? WHERE inventory_id = ?";
+        String sql = "UPDATE Inventory SET or_number = ?, product_id = ?, product_supplier = ?, inventory_quantity = ?, unit_price = ?, inventory_price = ? WHERE inventory_id = ?";
         Connection conn = null;
         PreparedStatement stmt = null;
         
@@ -133,10 +135,11 @@ public class InventoryController {
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, inventory.getOrNumber());
             stmt.setInt(2, inventory.getProductId());
-            stmt.setInt(3, inventory.getInventoryQuantity());
-            stmt.setDouble(4, inventory.getUnitPrice());
-            stmt.setDouble(5, inventory.getInventoryPrice());
-            stmt.setInt(6, inventory.getInventoryId());
+            stmt.setString(3, inventory.getProductSupplier());
+            stmt.setInt(4, inventory.getInventoryQuantity());
+            stmt.setDouble(5, inventory.getUnitPrice());
+            stmt.setDouble(6, inventory.getInventoryPrice());
+            stmt.setInt(7, inventory.getInventoryId());
             stmt.executeUpdate();
 
             // Update product stock with the difference
@@ -262,6 +265,7 @@ public class InventoryController {
                     rs.getInt("inventory_id"),
                     rs.getString("or_number"),
                     rs.getInt("product_id"),
+                    rs.getString("product_supplier"),
                     rs.getInt("inventory_quantity"),
                     rs.getDouble("unit_price"),
                     rs.getDouble("inventory_price")
@@ -302,6 +306,7 @@ public class InventoryController {
                 detail.put("inventory_id", rs.getInt("inventory_id"));
                 detail.put("or_number", rs.getString("or_number"));
                 detail.put("product_id", rs.getInt("product_id"));
+                detail.put("product_supplier", rs.getString("product_supplier"));
                 detail.put("product_name", rs.getString("product_name"));
                 detail.put("product_brand", rs.getString("product_brand"));
                 detail.put("product_stock", rs.getInt("product_stock")); // Show current product stock
@@ -416,6 +421,79 @@ public class InventoryController {
         } finally {
             closeResources(stmt, conn, rs);
         }
+    }
+
+    // Method to get all suppliers for dropdown
+    public List<String> getAllSuppliers() {
+        List<String> suppliers = new ArrayList<>();
+        String sql = "SELECT DISTINCT product_supplier FROM Inventory WHERE product_supplier IS NOT NULL ORDER BY product_supplier";
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBContext.getConnection();
+            if (conn == null) {
+                System.err.println("Failed to establish database connection");
+                return suppliers;
+            }
+            
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                suppliers.add(rs.getString("product_supplier"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Failed to fetch suppliers: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            closeResources(stmt, conn, rs);
+        }
+        return suppliers;
+    }
+
+    // Method to get inventory by supplier
+    public List<Inventory> getInventoryBySupplier(String supplier) {
+        List<Inventory> inventoryList = new ArrayList<>();
+        String sql = "SELECT * FROM Inventory WHERE product_supplier = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = DBContext.getConnection();
+            if (conn == null) {
+                System.err.println("Failed to establish database connection");
+                return inventoryList;
+            }
+            
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, supplier);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Inventory inventory = new Inventory(
+                    rs.getInt("inventory_id"),
+                    rs.getString("or_number"),
+                    rs.getInt("product_id"),
+                    rs.getString("product_supplier"),
+                    rs.getInt("inventory_quantity"),
+                    rs.getDouble("unit_price"),
+                    rs.getDouble("inventory_price")
+                );
+                inventoryList.add(inventory);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Failed to fetch inventory by supplier: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            closeResources(stmt, conn, rs);
+        }
+
+        return inventoryList;
     }
 
     private void closeResources(PreparedStatement stmt, Connection conn) {

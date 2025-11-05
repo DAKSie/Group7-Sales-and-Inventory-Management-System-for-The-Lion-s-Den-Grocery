@@ -23,6 +23,7 @@ public class SalesManagerPanel extends JPanel {
     private SalesController salesController;
     private ProductController productController;
     private List<Product> allProducts; // store all products for filtering
+    private JLabel stockLabel; // Added stock display label
 
     public SalesManagerPanel(String currentUser) {
         this._currentUser = currentUser;
@@ -93,7 +94,7 @@ public class SalesManagerPanel extends JPanel {
             BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true),
             BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
-        int inputPanelWidth = 270, inputPanelHeight = 450;
+        int inputPanelWidth = 270, inputPanelHeight = 480; // Increased height for stock label
         inputPanel.setBounds(10, 10, inputPanelWidth, inputPanelHeight);
 
         // Labels
@@ -107,6 +108,13 @@ public class SalesManagerPanel extends JPanel {
         inputPanel.add(new BetterLabels(labelX, labelY, "Unit Price: "));
         labelY += labelOffset;
         inputPanel.add(new BetterLabels(labelX, labelY, "Total: "));
+
+        // Stock label
+        stockLabel = new JLabel("Available Stock: 0");
+        stockLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        stockLabel.setForeground(new Color(100, 100, 100));
+        stockLabel.setBounds(labelX, labelY, 200, 20);
+        inputPanel.add(stockLabel);
 
         // Inputs
         int textFieldY = 10, textFieldX = 120, textFieldOffset = 32;
@@ -148,7 +156,7 @@ public class SalesManagerPanel extends JPanel {
         inputPanel.add(totalInput);
 
         // Buttons
-        int buttonY = 250, buttonX = inputPanelWidth / 2 - 50, buttonOffset = 40;
+        int buttonY = 280, buttonX = inputPanelWidth / 2 - 50, buttonOffset = 40;
         BetterButtons addButton = new BetterButtons(buttonX, buttonY, "addButton", "Add Sale");
         buttonY += buttonOffset;
         BetterButtons deleteButton = new BetterButtons(buttonX, buttonY, "deleteButton", "Delete Sale");
@@ -176,9 +184,18 @@ public class SalesManagerPanel extends JPanel {
 
         productCombo.addActionListener(e -> updateProductDetails());
         quantityInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { calculateTotal(); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { calculateTotal(); }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { calculateTotal(); }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { 
+                calculateTotal(); 
+                validateStock();
+            }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { 
+                calculateTotal(); 
+                validateStock();
+            }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { 
+                calculateTotal(); 
+                validateStock();
+            }
         });
 
         inputPanel.add(addButton);
@@ -253,6 +270,80 @@ public class SalesManagerPanel extends JPanel {
                 priceInput.setText("");
             }
         }
+
+        // Update stock information
+        updateStockDisplay();
+    }
+
+    private void updateStockDisplay() {
+        String selected = (String) productCombo.getSelectedItem();
+
+        stockLabel.setBounds(50, 180, 200, 25);
+        stockLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        stockLabel.setOpaque(true);
+        stockLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        stockLabel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+        stockLabel.setBackground(new Color(245, 245, 245));
+
+        if (selected == null || !selected.contains(" - ")) {
+            stockLabel.setText("Available Stock: 0");
+            return;
+        }
+
+        try {
+            int productId = Integer.parseInt(selected.split(" - ")[0]);
+            int availableStock = productController.getProductStock(productId);
+            
+            if (availableStock <= 0) {
+                stockLabel.setText("Not enough: " + availableStock);
+                stockLabel.setForeground(Color.RED);
+            } else if (availableStock <= 10) {
+                stockLabel.setText("Available Stock: " + availableStock + " (Low Stock)");
+                stockLabel.setForeground(Color.ORANGE);
+            } else {
+                stockLabel.setText("Available Stock: " + availableStock);
+                stockLabel.setForeground(new Color(0, 128, 0)); // Green
+            }
+        } catch (Exception e) {
+            stockLabel.setText("Not enough: \" + availableStock");
+            stockLabel.setForeground(Color.RED);
+        }
+    }
+
+    private void validateStock() {
+        String selected = (String) productCombo.getSelectedItem();
+        if (selected == null || !selected.contains(" - ")) return;
+
+        try {
+            int productId = Integer.parseInt(selected.split(" - ")[0]);
+            int availableStock = productController.getProductStock(productId);
+            String quantityText = quantityInput.getText().trim();
+            
+            if (!quantityText.isEmpty()) {
+                int enteredQuantity = Integer.parseInt(quantityText);
+                
+                if (enteredQuantity > availableStock) {
+                    quantityInput.setBackground(new Color(255, 200, 200)); // Light red
+                    stockLabel.setText("Available Stock: " + availableStock);
+                    stockLabel.setForeground(Color.RED);
+                } else if (enteredQuantity <= 0) {
+                    quantityInput.setBackground(new Color(255, 255, 200)); // Light yellow
+                    stockLabel.setText("Available Stock: " + availableStock);
+                    stockLabel.setForeground(Color.ORANGE);
+                } else {
+                    quantityInput.setBackground(Color.WHITE);
+                    updateStockDisplay(); // Reset to normal display
+                }
+            } else {
+                quantityInput.setBackground(Color.WHITE);
+                updateStockDisplay(); // Reset to normal display
+            }
+        } catch (NumberFormatException e) {
+            // Ignore - user is still typing
+            quantityInput.setBackground(Color.WHITE);
+        } catch (Exception e) {
+            quantityInput.setBackground(Color.WHITE);
+        }
     }
 
     private void calculateTotal() {
@@ -285,12 +376,29 @@ public class SalesManagerPanel extends JPanel {
                 return;
             }
 
-            Sale sale = new Sale(0, productId, itemName, price, quantity, total, _currentUser);
-            salesController.addSale(sale);
+            // Check stock availability before proceeding
+            int availableStock = productController.getProductStock(productId);
+            if (quantity > availableStock) {
+                JOptionPane.showMessageDialog(this, 
+                    "Insufficient stock!\n" +
+                    "Available stock: " + availableStock + "\n" +
+                    "Requested quantity: " + quantity + "\n" +
+                    "Please reduce the quantity or restock the product.", 
+                    "Stock Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-            JOptionPane.showMessageDialog(this, "Sale added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            clearFields();
-            loadSalesToTable();
+            Sale sale = new Sale(0, productId, itemName, price, quantity, total, _currentUser);
+            
+            if (salesController.addSale(sale)) {
+                JOptionPane.showMessageDialog(this, "Sale added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                clearFields();
+                loadSalesToTable();
+                loadProductComboBox(); // Refresh to get updated stock info
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add sale. Please check the inputs.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
 
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers for quantity", "Error", JOptionPane.ERROR_MESSAGE);
@@ -316,6 +424,7 @@ public class SalesManagerPanel extends JPanel {
             salesController.deleteSale(saleId);
             JOptionPane.showMessageDialog(this, "Sale deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             loadSalesToTable();
+            loadProductComboBox(); // Refresh to get updated stock info
         }
     }
 
@@ -324,6 +433,9 @@ public class SalesManagerPanel extends JPanel {
         totalInput.setText("0.00");
         itemNameInput.setText("");
         priceInput.setText("");
+        quantityInput.setBackground(Color.WHITE);
+        stockLabel.setText("Available Stock: 0");
+        stockLabel.setForeground(new Color(100, 100, 100));
         if (productCombo.getItemCount() > 0) {
             productCombo.setSelectedIndex(0);
         }

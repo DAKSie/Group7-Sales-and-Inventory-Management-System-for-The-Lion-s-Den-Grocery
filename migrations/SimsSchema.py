@@ -63,6 +63,7 @@ TABLES['Inventory'] = (
       `inventory_id` INT AUTO_INCREMENT,
       `or_number` VARCHAR(255) NOT NULL,
       `product_id` INT NOT NULL,
+      `product_supplier` VARCHAR(255),
       `inventory_quantity` INT(11),
       `unit_price` DECIMAL(10,2),
       `inventory_price` DECIMAL(10,2),
@@ -207,10 +208,70 @@ def main():
         
         # Sample inventory - matching product quantities with OR numbers
         print("Adding inventory data...")
-        cursor.execute("SELECT product_id, product_stock FROM Product")
+        cursor.execute("SELECT product_id, product_stock, product_brand FROM Product")
         products = cursor.fetchall()
         
-        for i, (product_id, stock) in enumerate(products, 1):
+        # Define suppliers for different product categories
+        suppliers = {
+            # Rice and Grains suppliers
+            "Dona Maria": "National Food Authority",
+            "Angelica": "National Food Authority",
+            "Local": "Local Farmers Market",
+            
+            # Canned Goods suppliers
+            "555": "Century Pacific Food Inc.",
+            "Purefoods": "San Miguel Foods",
+            "Argentina": "San Miguel Foods", 
+            "Ligo": "Century Pacific Food Inc.",
+            
+            # Noodles and Pasta suppliers
+            "Lucky Me": "Monde Nissin",
+            "Mi Goreng": "Monde Nissin",
+            "Eagle": "Eagle Brand Distributor",
+            "Monterey": "Monterey Foods",
+            
+            # Condiments and Sauces suppliers
+            "Silver Swan": "Silver Swan Distributor",
+            "Tipid Tip": "Local Supplier",
+            "Datu Puti": "Nutri-Asia",
+            "Jufran": "Nutri-Asia",
+            "Barrio Fiesta": "Barrio Fiesta Foods",
+            
+            # Snacks and Biscuits suppliers
+            "Skyflakes": "Gardenia Bakeries",
+            "Nova": "Universal Robina",
+            "Cloud 9": "Universal Robina",
+            "Boy Bawang": "Regent Foods",
+            "Chippy": "Jack n' Jill",
+            
+            # Beverages suppliers
+            "Nescafe": "Nestlé Philippines",
+            "Quickbrew": "Local Supplier",
+            "Coca-Cola": "Coca-Cola Philippines",
+            "Royal": "Coca-Cola Philippines",
+            "Sprite": "Coca-Cola Philippines",
+            
+            # Personal Care suppliers
+            "Sunsilk": "Unilever Philippines",
+            "Colgate": "Colgate-Palmolive",
+            "Safeguard": "Procter & Gamble",
+            "Pond's": "Unilever Philippines",
+            
+            # Household Items suppliers
+            "Tide": "Procter & Gamble",
+            "Downy": "Procter & Gamble",
+            "Zonrox": "Zonrox Philippines",
+            
+            # Frozen Goods suppliers
+            "Purefoods": "San Miguel Foods",
+            "Pampanga's Best": "Pampanga's Best",
+            "Virginia": "Virginia Foods",
+            
+            # Fresh Produce suppliers
+            "Local": "Local Farmers Market"
+        }
+        
+        for i, (product_id, stock, brand) in enumerate(products, 1):
             try:
                 # Get product price for calculation
                 cursor.execute("SELECT product_price FROM Product WHERE product_id = %s", (product_id,))
@@ -218,12 +279,15 @@ def main():
                 unit_price = product_price
                 inventory_price = unit_price * stock
                 
+                # Determine supplier based on brand
+                supplier = suppliers.get(brand, "General Supplier")
+                
                 # Generate OR number
                 or_number = generate_or_number("SIM", i)
                 
                 cursor.execute(
-                    "INSERT IGNORE INTO Inventory (or_number, product_id, inventory_quantity, unit_price, inventory_price) VALUES (%s, %s, %s, %s, %s)",
-                    (or_number, product_id, stock, unit_price, inventory_price)
+                    "INSERT IGNORE INTO Inventory (or_number, product_id, product_supplier, inventory_quantity, unit_price, inventory_price) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (or_number, product_id, supplier, stock, unit_price, inventory_price)
                 )
             except mysql.connector.Error as err:
                 print(f"Failed to add inventory for product {product_id}: {err}")
@@ -271,18 +335,25 @@ def main():
         cursor.execute("SELECT COUNT(*) FROM Inventory")
         inventory_count = cursor.fetchone()[0]
         
+        # Show sample suppliers
+        cursor.execute("SELECT DISTINCT product_supplier FROM Inventory LIMIT 10")
+        sample_suppliers = [row[0] for row in cursor.fetchall()]
+        
         print(f"\n=== Database Summary ===")
         print(f"Users: {user_count}")
         print(f"Products: {product_count}")
         print(f"Inventory Records: {inventory_count}")
         print(f"Sales Transactions: {sales_count}")
         print(f"Total Revenue: ₱{total_revenue:,.2f}")
+        print(f"Sample Suppliers: {', '.join(sample_suppliers)}")
         print("The Lion's Den Grocery is ready for business! 🛒")
         
-        # Show sample OR numbers
-        cursor.execute("SELECT or_number FROM Inventory LIMIT 5")
-        sample_or_numbers = [row[0] for row in cursor.fetchall()]
-        print(f"Sample OR Numbers: {', '.join(sample_or_numbers)}")
+        # Show sample OR numbers with suppliers
+        cursor.execute("SELECT or_number, product_supplier FROM Inventory LIMIT 5")
+        sample_inventory = cursor.fetchall()
+        print(f"Sample Inventory Records:")
+        for or_num, supplier in sample_inventory:
+            print(f"  {or_num} - Supplier: {supplier}")
         
         cursor.close()
         cnx.close()

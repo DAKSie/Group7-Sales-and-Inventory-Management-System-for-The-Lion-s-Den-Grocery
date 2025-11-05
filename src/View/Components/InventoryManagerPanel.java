@@ -15,7 +15,8 @@ import javax.swing.table.DefaultTableModel;
 public class InventoryManagerPanel extends JPanel {
     private String _currentUser;
     private JComboBox<String> itemIdCombo;
-    private BetterInputs quantityInput, priceInput, itemNameInput, supplierInput, orInput;
+    private JComboBox<String> supplierInput; // Changed from BetterInputs to JComboBox
+    private BetterInputs quantityInput, priceInput, itemNameInput, orInput;
     private DefaultTableModel inventoryTableModel;
     private JTable inventoryTable;
     private ProductManagerPanel productManagerPanel;
@@ -30,6 +31,7 @@ public class InventoryManagerPanel extends JPanel {
         buildPanel();
         loadInventoryToTable();
         loadProductComboBox();
+        loadSupplierComboBox();
     }
 
     private void buildPanel() {
@@ -44,7 +46,7 @@ public class InventoryManagerPanel extends JPanel {
         int tablePanelWidth = 825, tablePanelHeight = 450;
         tablePanel.setBounds(310, 10, tablePanelWidth, tablePanelHeight);
 
-        String[] columnNames = {"Inventory ID", "Product ID", "OR number",  "Product Name", "Brand", "Quantity", "Unit Price", "Total Price"};
+        String[] columnNames = {"Inventory ID", "OR Number", "Product ID", "Supplier", "Product Name", "Brand", "Quantity", "Unit Price", "Total Price"};
         inventoryTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -91,7 +93,7 @@ public class InventoryManagerPanel extends JPanel {
             BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true),
             BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
-        int inputPanelWidth = 270, inputPanelHeight = 475;
+        int inputPanelWidth = 270, inputPanelHeight = 510;
         inputPanel.setBounds(10, 10, inputPanelWidth, inputPanelHeight);
 
         // Labels
@@ -124,7 +126,12 @@ public class InventoryManagerPanel extends JPanel {
         itemNameInput.setEditable(false);
         textFieldY += textFieldOffset;
         
-        supplierInput = new BetterInputs(textFieldX, textFieldY, "supplier", "");
+        // Supplier as JComboBox
+        supplierInput = new JComboBox<>();
+        styleModernComboBox(supplierInput);
+        supplierInput.setBounds(textFieldX, textFieldY, 120, 28);
+        supplierInput.setEditable(true);
+        ((JTextField) supplierInput.getEditor().getEditorComponent()).setBorder(null);
         textFieldY += textFieldOffset;
         
         quantityInput = new BetterInputs(textFieldX, textFieldY, "quantity", "");
@@ -140,7 +147,7 @@ public class InventoryManagerPanel extends JPanel {
         inputPanel.add(priceInput);
 
         // Buttons
-        int buttonY = 250, buttonX = inputPanelWidth / 2 - 50, buttonOffset = 40;
+        int buttonY = 280, buttonX = inputPanelWidth / 2 - 50, buttonOffset = 40;
         BetterButtons addButton = new BetterButtons(buttonX, buttonY, "addButton", "Add Stock");
         buttonY += buttonOffset;
         BetterButtons deleteButton = new BetterButtons(buttonX, buttonY, "deleteButton", "Delete Stock");
@@ -165,20 +172,30 @@ public class InventoryManagerPanel extends JPanel {
         refreshButton.addActionListener(e -> {
             loadInventoryToTable();
             loadProductComboBox();
+            loadSupplierComboBox();
         });
         
         // Product selection listener
         itemIdCombo.addActionListener(e -> updateProductName());
 
-        // Search/filter feature
-        JTextField editor = (JTextField) itemIdCombo.getEditor().getEditorComponent();
-        editor.addKeyListener(new java.awt.event.KeyAdapter() {
+        // Search/filter feature for product combo
+        JTextField productEditor = (JTextField) itemIdCombo.getEditor().getEditorComponent();
+        productEditor.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
             public void keyReleased(java.awt.event.KeyEvent e) {
-                String input = editor.getText().trim().toLowerCase();
-                filterComboBox(input);
+                String input = productEditor.getText().trim().toLowerCase();
+                filterProductComboBox(input);
             }
         });
+
+        // Auto-generate OR number button
+        // BetterButtons generateOrButton = new BetterButtons(240, 10, "generateOr", "Generate");
+        // generateOrButton.setBackground(new Color(40, 167, 69));
+        // generateOrButton.setForeground(Color.WHITE);
+        // generateOrButton.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        // generateOrButton.setBounds(240, 10, 70, 28);
+        // generateOrButton.addActionListener(e -> generateOrNumber());
+        // inputPanel.add(generateOrButton);
 
         inputPanel.add(addButton);
         inputPanel.add(deleteButton);
@@ -198,6 +215,7 @@ public class InventoryManagerPanel extends JPanel {
                 detail.get("inventory_id"),
                 detail.get("or_number"),
                 detail.get("product_id"),
+                detail.get("product_supplier"),
                 detail.get("product_name"),
                 detail.get("product_brand"),
                 detail.get("inventory_quantity"),
@@ -217,7 +235,16 @@ public class InventoryManagerPanel extends JPanel {
         }
     }
 
-    private void filterComboBox(String query) {
+    private void loadSupplierComboBox() {
+        supplierInput.removeAllItems();
+        List<String> suppliers = inventoryController.getAllSuppliers();
+        
+        for (String supplier : suppliers) {
+            supplierInput.addItem(supplier);
+        }
+    }
+
+    private void filterProductComboBox(String query) {
         itemIdCombo.removeAllItems();
         List<Product> products = productController.getAllProducts();
 
@@ -241,31 +268,53 @@ public class InventoryManagerPanel extends JPanel {
         }
     }
 
+    private void generateOrNumber() {
+        String newOrNumber = inventoryController.generateNewOrNumber();
+        orInput.setText(newOrNumber);
+    }
+
     private void addInventory() {
         try {
             String selectedProduct = (String) itemIdCombo.getSelectedItem();
-            if (selectedProduct == null) {
+            if (selectedProduct == null || selectedProduct.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please select a product", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            int productId = Integer.parseInt(selectedProduct.split(" - ")[0]);
             String orNumber = orInput.getText().trim();
+            if (orNumber.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter OR Number", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            String supplier = (String) supplierInput.getSelectedItem();
+            if (supplier == null || supplier.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a supplier", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            int productId = Integer.parseInt(selectedProduct.split(" - ")[0]);
             int quantity = Integer.parseInt(quantityInput.getText().trim());
             double unitPrice = Double.parseDouble(priceInput.getText().replace("₱", "").trim());
             double totalPrice = quantity * unitPrice;
             
-            Inventory inventory = new Inventory(0, orNumber, productId, quantity, unitPrice, totalPrice);
-            inventoryController.addInventory(inventory);
+            // Create inventory with supplier
+            Inventory inventory = new Inventory(0, orNumber, productId, supplier, quantity, unitPrice, totalPrice);
             
-            JOptionPane.showMessageDialog(this, "Inventory added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            clearFields();
-            loadInventoryToTable();
+            if (inventoryController.addInventory(inventory)) {
+                JOptionPane.showMessageDialog(this, "Inventory added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                clearFields();
+                loadInventoryToTable();
+                loadSupplierComboBox(); // Refresh suppliers in case new one was added
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add inventory. Please check the inputs.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
             
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers for quantity and price", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error adding inventory: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 
@@ -277,15 +326,24 @@ public class InventoryManagerPanel extends JPanel {
         }
         
         int inventoryId = (int) inventoryTableModel.getValueAt(selectedRow, 0);
+        String orNumber = (String) inventoryTableModel.getValueAt(selectedRow, 1);
+        String productName = (String) inventoryTableModel.getValueAt(selectedRow, 4);
+        
         int confirm = JOptionPane.showConfirmDialog(this, 
-            "Are you sure you want to delete this inventory record?", 
+            "Are you sure you want to delete inventory record?\n" +
+            "OR Number: " + orNumber + "\n" +
+            "Product: " + productName, 
             "Confirm Delete", 
-            JOptionPane.YES_NO_OPTION);
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
             
         if (confirm == JOptionPane.YES_OPTION) {
-            inventoryController.deleteInventory(inventoryId);
-            JOptionPane.showMessageDialog(this, "Inventory deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            loadInventoryToTable();
+            if (inventoryController.deleteInventory(inventoryId)) {
+                JOptionPane.showMessageDialog(this, "Inventory deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadInventoryToTable();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete inventory", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -293,7 +351,8 @@ public class InventoryManagerPanel extends JPanel {
         orInput.setText("");
         quantityInput.setText("");
         priceInput.setText("");
-        supplierInput.setText("");
+        supplierInput.setSelectedIndex(-1);
+        ((JTextField) supplierInput.getEditor().getEditorComponent()).setText("");
         itemNameInput.setText("");
         if (itemIdCombo.getItemCount() > 0) {
             itemIdCombo.setSelectedIndex(0);

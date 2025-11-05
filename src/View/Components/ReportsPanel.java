@@ -102,7 +102,7 @@ public class ReportsPanel extends JPanel {
                 break;
             case "inventory":
                 inventoryModel = new DefaultTableModel(
-                        new String[]{"ID", "OR number" , "Product", "Brand", "Quantity", "Unit Price", "Total Price", "Date"}, 0) {
+                        new String[]{"ID", "OR number", "Product", "Brand", "Supplier", "Quantity", "Unit Price", "Total Price", "Date"}, 0) {
                     public boolean isCellEditable(int row, int col) { return false; }
                 };
                 inventoryTable = new JTable(inventoryModel);
@@ -199,6 +199,7 @@ public class ReportsPanel extends JPanel {
                 item.get("or_number"),
                 item.get("product_name"),
                 item.get("product_brand"),
+                item.get("product_supplier"),
                 item.get("inventory_quantity"),
                 String.format("₱%.2f", item.get("unit_price")),
                 String.format("₱%.2f", item.get("inventory_price")),
@@ -364,17 +365,18 @@ public class ReportsPanel extends JPanel {
     private void exportInventoryToCSV(java.io.File file) throws IOException {
         try (FileWriter writer = new FileWriter(file)) {
             // Write CSV header
-            writer.write("Inventory ID,OR Number,Product ID,Product Name,Brand,Quantity,Unit Price,Total Price,Date Created\n");
+            writer.write("Inventory ID,OR Number,Product ID,Product Name,Brand,Supplier,Quantity,Unit Price,Total Price,Date Created\n");
             
             // Write data
             List<Map<String, Object>> inventory = reportsController.getAllInventoryReport();
             for (Map<String, Object> item : inventory) {
-                writer.write(String.format("%d,%s,%d,\"%s\",\"%s\",%d,%.2f,%.2f,%s\n",
+                writer.write(String.format("%d,%s,%d,\"%s\",\"%s\",\"%s\",%d,%.2f,%.2f,%s\n",
                     (Integer) item.get("inventory_id"),
                     escapeCsv((String) item.get("or_number")),
                     (Integer) item.get("product_id"),
                     escapeCsv((String) item.get("product_name")),
                     escapeCsv((String) item.get("product_brand")),
+                    escapeCsv((String) item.get("product_supplier")),
                     (Integer) item.get("inventory_quantity"),
                     (Double) item.get("unit_price"),
                     (Double) item.get("inventory_price"),
