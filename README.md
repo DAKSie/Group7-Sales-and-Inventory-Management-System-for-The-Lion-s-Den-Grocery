@@ -55,10 +55,10 @@ This application is designed for small grocery stores, providing an easy way to 
    ```
 
 2. **Build the Java Application:**
-   - If using an IDE (e.g. IntelliJ IDEA, Eclipse) — import the project and build/run.
+    We have implemented a run script for windows
    - Or via command line:
      ```bash
-     javac -d bin src/*.java
+     run
      ```
 
 3. **(Optional) Set Up Python Scripts:**
