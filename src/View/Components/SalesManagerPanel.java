@@ -7,6 +7,8 @@ import Model.Product;
 import Model.Sale;
 import View.Utils.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
@@ -20,6 +22,7 @@ public class SalesManagerPanel extends JPanel {
     private JTable salesTable;
     private SalesController salesController;
     private ProductController productController;
+    private List<Product> allProducts; // store all products for filtering
 
     public SalesManagerPanel(String currentUser) {
         this._currentUser = currentUser;
@@ -40,7 +43,7 @@ public class SalesManagerPanel extends JPanel {
             BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true),
             BorderFactory.createEmptyBorder(12, 12, 12, 12)
         ));
-        int tablePanelWidth = 825, tablePanelHeight = 475;
+        int tablePanelWidth = 825, tablePanelHeight = 450;
         tablePanel.setBounds(310, 10, tablePanelWidth, tablePanelHeight);
 
         String[] columnNames = {"Sale ID", "Product", "Brand", "Quantity", "Unit Price", "Total", "User"};
@@ -50,7 +53,7 @@ public class SalesManagerPanel extends JPanel {
                 return false;
             }
         };
-        
+
         salesTable = new JTable(salesTableModel) {
             @Override
             public Component prepareRenderer(javax.swing.table.TableCellRenderer renderer, int row, int column) {
@@ -76,7 +79,7 @@ public class SalesManagerPanel extends JPanel {
         salesTable.getTableHeader().setBackground(new Color(245, 247, 250));
         salesTable.getTableHeader().setForeground(new Color(60, 60, 60));
         salesTable.setGridColor(new Color(235, 235, 235));
-        
+
         JScrollPane tableScrollPane = new JScrollPane(salesTable);
         tableScrollPane.setBounds(10, 10, tablePanelWidth - 20, tablePanelHeight - 20);
         tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true));
@@ -107,23 +110,34 @@ public class SalesManagerPanel extends JPanel {
 
         // Inputs
         int textFieldY = 10, textFieldX = 120, textFieldOffset = 32;
-        
+
         productCombo = new JComboBox<>();
         styleModernComboBox(productCombo);
-        productCombo.setBounds(textFieldX, textFieldY, 120, 28);
+        productCombo.setEditable(true); 
+        productCombo.setBounds(textFieldX, textFieldY, 130, 28);
         textFieldY += textFieldOffset;
-        
+
+        // --- Search Feature ---
+        JTextField editor = (JTextField) productCombo.getEditor().getEditorComponent();
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String input = editor.getText().trim().toLowerCase();
+                filterComboBox(input);
+            }
+        });
+
         itemNameInput = new BetterInputs(textFieldX, textFieldY, "itemName", "");
         itemNameInput.setEditable(false);
         textFieldY += textFieldOffset;
-        
+
         quantityInput = new BetterInputs(textFieldX, textFieldY, "quantity", "");
         textFieldY += textFieldOffset;
-        
+
         priceInput = new BetterInputs(textFieldX, textFieldY, "price", "");
         priceInput.setEditable(false);
         textFieldY += textFieldOffset;
-        
+
         totalInput = new BetterInputs(textFieldX, textFieldY, "total", "");
         totalInput.setEditable(false);
 
@@ -142,7 +156,7 @@ public class SalesManagerPanel extends JPanel {
         BetterButtons clearButton = new BetterButtons(buttonX, buttonY, "clearButton", "Clear Fields");
         buttonY += buttonOffset;
         BetterButtons refreshButton = new BetterButtons(buttonX, buttonY, "refreshButton", "Refresh");
-        
+
         addButton.setBackground(new Color(0, 122, 255));
         addButton.setForeground(Color.WHITE);
         deleteButton.setBackground(new Color(220, 53, 69));
@@ -151,8 +165,7 @@ public class SalesManagerPanel extends JPanel {
         clearButton.setForeground(Color.WHITE);
         refreshButton.setBackground(new Color(255, 193, 7));
         refreshButton.setForeground(Color.BLACK);
-        
-        // Action Listeners
+
         addButton.addActionListener(e -> addSale());
         deleteButton.addActionListener(e -> deleteSale());
         clearButton.addActionListener(e -> clearFields());
@@ -160,8 +173,7 @@ public class SalesManagerPanel extends JPanel {
             loadSalesToTable();
             loadProductComboBox();
         });
-        
-        // Event listeners for real-time calculation
+
         productCombo.addActionListener(e -> updateProductDetails());
         quantityInput.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(javax.swing.event.DocumentEvent e) { calculateTotal(); }
@@ -178,10 +190,27 @@ public class SalesManagerPanel extends JPanel {
         add(inputPanel);
     }
 
+    private void filterComboBox(String query) {
+        if (allProducts == null) return;
+        productCombo.removeAllItems();
+
+        for (Product p : allProducts) {
+            double sellingPrice = productController.getSellingPrice(p);
+            String display = p.getProductId() + " - " + p.getProductName() + " (₱" + String.format("%.2f", sellingPrice) + ")";
+            if (query.isEmpty() || p.getProductName().toLowerCase().contains(query)) {
+                productCombo.addItem(display);
+            }
+        }
+
+        JTextField editor = (JTextField) productCombo.getEditor().getEditorComponent();
+        editor.setText(query);
+        productCombo.showPopup();
+    }
+
     private void loadSalesToTable() {
         salesTableModel.setRowCount(0);
         List<Map<String, Object>> salesDetails = salesController.getSalesWithProductDetails();
-        
+
         for (Map<String, Object> detail : salesDetails) {
             Object[] rowData = {
                 detail.get("sale_id"),
@@ -198,10 +227,9 @@ public class SalesManagerPanel extends JPanel {
 
     private void loadProductComboBox() {
         productCombo.removeAllItems();
-        List<Product> products = productController.getAllProducts();
-        
-        for (Product product : products) {
-            // Use the controller method to get selling price
+        allProducts = productController.getAllProducts();
+
+        for (Product product : allProducts) {
             double sellingPrice = productController.getSellingPrice(product);
             productCombo.addItem(product.getProductId() + " - " + product.getProductName() + " (₱" + String.format("%.2f", sellingPrice) + ")");
         }
@@ -209,12 +237,13 @@ public class SalesManagerPanel extends JPanel {
 
     private void updateProductDetails() {
         String selected = (String) productCombo.getSelectedItem();
-        if (selected != null && selected.contains(" - ")) {
-            String[] parts = selected.split(" - ");
-            String productName = parts[1].split(" \\(")[0]; // Extract product name before price
-            itemNameInput.setText(productName);
-            
-            // Extract and set price
+        if (selected == null || !selected.contains(" - ")) return;
+
+        String[] parts = selected.split(" - ");
+        String productName = parts[1].split(" \\(")[0];
+        itemNameInput.setText(productName);
+
+        if (selected.contains("₱")) {
             String pricePart = selected.substring(selected.indexOf("₱") + 1, selected.indexOf(")"));
             try {
                 double price = Double.parseDouble(pricePart);
@@ -240,29 +269,29 @@ public class SalesManagerPanel extends JPanel {
     private void addSale() {
         try {
             String selectedProduct = (String) productCombo.getSelectedItem();
-            if (selectedProduct == null) {
+            if (selectedProduct == null || selectedProduct.trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please select a product", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
+
             int productId = Integer.parseInt(selectedProduct.split(" - ")[0]);
             String itemName = itemNameInput.getText().trim();
             int quantity = Integer.parseInt(quantityInput.getText().trim());
             double price = Double.parseDouble(priceInput.getText());
             double total = Double.parseDouble(totalInput.getText());
-            
+
             if (quantity <= 0) {
                 JOptionPane.showMessageDialog(this, "Quantity must be greater than 0", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
+
             Sale sale = new Sale(0, productId, itemName, price, quantity, total, _currentUser);
             salesController.addSale(sale);
-            
+
             JOptionPane.showMessageDialog(this, "Sale added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearFields();
             loadSalesToTable();
-            
+
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers for quantity", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
@@ -276,13 +305,13 @@ public class SalesManagerPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please select a sale to delete", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         int saleId = (int) salesTableModel.getValueAt(selectedRow, 0);
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "Are you sure you want to delete this sale record?", 
-            "Confirm Delete", 
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to delete this sale record?",
+            "Confirm Delete",
             JOptionPane.YES_NO_OPTION);
-            
+
         if (confirm == JOptionPane.YES_OPTION) {
             salesController.deleteSale(saleId);
             JOptionPane.showMessageDialog(this, "Sale deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -305,13 +334,12 @@ public class SalesManagerPanel extends JPanel {
         comboBox.setBackground(Color.WHITE);
         comboBox.setForeground(new Color(30, 30, 30));
         comboBox.setBorder(BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true));
-        comboBox.setFocusable(false);
         comboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 java.awt.Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 c.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                c.setBackground(isSelected ? new Color(230,240,255) : Color.WHITE);
+                c.setBackground(isSelected ? new Color(230, 240, 255) : Color.WHITE);
                 c.setForeground(new Color(30, 30, 30));
                 return c;
             }

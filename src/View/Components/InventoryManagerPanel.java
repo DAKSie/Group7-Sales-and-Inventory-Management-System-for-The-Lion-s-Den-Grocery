@@ -116,6 +116,8 @@ public class InventoryManagerPanel extends JPanel {
         itemIdCombo = new JComboBox<>();
         styleModernComboBox(itemIdCombo);
         itemIdCombo.setBounds(textFieldX, textFieldY, 120, 28);
+        itemIdCombo.setEditable(true);
+        ((JTextField) itemIdCombo.getEditor().getEditorComponent()).setBorder(null);
         textFieldY += textFieldOffset;
         
         itemNameInput = new BetterInputs(textFieldX, textFieldY, "itemName", "");
@@ -168,6 +170,16 @@ public class InventoryManagerPanel extends JPanel {
         // Product selection listener
         itemIdCombo.addActionListener(e -> updateProductName());
 
+        // Search/filter feature
+        JTextField editor = (JTextField) itemIdCombo.getEditor().getEditorComponent();
+        editor.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent e) {
+                String input = editor.getText().trim().toLowerCase();
+                filterComboBox(input);
+            }
+        });
+
         inputPanel.add(addButton);
         inputPanel.add(deleteButton);
         inputPanel.add(clearButton);
@@ -205,6 +217,22 @@ public class InventoryManagerPanel extends JPanel {
         }
     }
 
+    private void filterComboBox(String query) {
+        itemIdCombo.removeAllItems();
+        List<Product> products = productController.getAllProducts();
+
+        for (Product product : products) {
+            String display = product.getProductId() + " - " + product.getProductName();
+            if (query.isEmpty() || product.getProductName().toLowerCase().contains(query)) {
+                itemIdCombo.addItem(display);
+            }
+        }
+
+        JTextField editor = (JTextField) itemIdCombo.getEditor().getEditorComponent();
+        editor.setText(query);
+        itemIdCombo.showPopup();
+    }
+
     private void updateProductName() {
         String selected = (String) itemIdCombo.getSelectedItem();
         if (selected != null && selected.contains(" - ")) {
@@ -227,7 +255,7 @@ public class InventoryManagerPanel extends JPanel {
             double unitPrice = Double.parseDouble(priceInput.getText().replace("₱", "").trim());
             double totalPrice = quantity * unitPrice;
             
-            Inventory inventory = new Inventory(0, orNumber, productId,  quantity, unitPrice, totalPrice);
+            Inventory inventory = new Inventory(0, orNumber, productId, quantity, unitPrice, totalPrice);
             inventoryController.addInventory(inventory);
             
             JOptionPane.showMessageDialog(this, "Inventory added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -277,7 +305,8 @@ public class InventoryManagerPanel extends JPanel {
         comboBox.setBackground(Color.WHITE);
         comboBox.setForeground(new Color(30, 30, 30));
         comboBox.setBorder(BorderFactory.createLineBorder(new Color(220, 225, 230), 1, true));
-        comboBox.setFocusable(false);
+        
+        comboBox.setEditable(true);
         comboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {

@@ -5,6 +5,9 @@ import View.Utils.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
@@ -15,6 +18,7 @@ public class ReportsPanel extends JPanel {
     private JTable productsTable, inventoryTable, inventoryDetailsTable, salesTable;
     private DefaultTableModel productsModel, inventoryModel, inventoryDetailsModel, salesModel;
     private ReportsController reportsController;
+    private JTabbedPane tabbedPane;
 
     public ReportsPanel() {
         this.reportsController = new ReportsController();
@@ -39,7 +43,7 @@ public class ReportsPanel extends JPanel {
 
         topPanel.add(buttonsPanel, BorderLayout.SOUTH);
 
-        JTabbedPane tabbedPane = createTabbedPane();
+        tabbedPane = createTabbedPane();
 
         add(topPanel, BorderLayout.NORTH);
         add(tabbedPane, BorderLayout.CENTER);
@@ -264,9 +268,171 @@ public class ReportsPanel extends JPanel {
     }
 
     private void exportToCSV() {
-        JOptionPane.showMessageDialog(this,
-            "Export feature coming soon!",
-            "Export",
-            JOptionPane.INFORMATION_MESSAGE);
+        int selectedTab = tabbedPane.getSelectedIndex();
+        String tabTitle = tabbedPane.getTitleAt(selectedTab);
+        
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Export " + tabTitle + " Report to CSV");
+        
+        // Set default filename
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+        String defaultFileName = "SIMS_" + tabTitle.replace(" ", "_") + "_" + timestamp + ".csv";
+        fileChooser.setSelectedFile(new java.io.File(defaultFileName));
+        
+        // Add file filter for CSV
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CSV Files (*.csv)", "csv"));
+        
+        int userSelection = fileChooser.showSaveDialog(this);
+        
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            java.io.File fileToSave = fileChooser.getSelectedFile();
+            
+            // Ensure .csv extension
+            if (!fileToSave.getName().toLowerCase().endsWith(".csv")) {
+                fileToSave = new java.io.File(fileToSave.getAbsolutePath() + ".csv");
+            }
+            
+            // Check if file exists and confirm overwrite
+            if (fileToSave.exists()) {
+                int overwrite = JOptionPane.showConfirmDialog(this,
+                    "File already exists. Do you want to overwrite it?",
+                    "Confirm Overwrite",
+                    JOptionPane.YES_NO_OPTION);
+                if (overwrite != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+            
+            try {
+                switch (selectedTab) {
+                    case 0: // Products
+                        exportProductsToCSV(fileToSave);
+                        break;
+                    case 1: // Inventory
+                        exportInventoryToCSV(fileToSave);
+                        break;
+                    case 2: // Sales
+                        exportSalesToCSV(fileToSave);
+                        break;
+                    case 3: // Top Selling
+                        exportTopSellingToCSV(fileToSave);
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(this,
+                            "Unsupported tab for export.",
+                            "Export Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                }
+                
+                JOptionPane.showMessageDialog(this,
+                    tabTitle + " report exported successfully to:\n" + fileToSave.getAbsolutePath(),
+                    "Export Successful",
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this,
+                    "Error exporting CSV file: " + ex.getMessage(),
+                    "Export Error",
+                    JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void exportProductsToCSV(java.io.File file) throws IOException {
+        try (FileWriter writer = new FileWriter(file)) {
+            // Write CSV header
+            writer.write("Product ID,Product Name,Brand,Price,Markup %,Stock,Selling Price\n");
+            
+            // Write data
+            List<Map<String, Object>> products = reportsController.getAllProductsReport();
+            for (Map<String, Object> product : products) {
+                writer.write(String.format("%d,\"%s\",\"%s\",%.2f,%.0f,%d,%.2f\n",
+                    (Integer) product.get("product_id"),
+                    escapeCsv((String) product.get("product_name")),
+                    escapeCsv((String) product.get("product_brand")),
+                    (Double) product.get("product_price"),
+                    (Double) product.get("product_markup"),
+                    (Integer) product.get("product_stock"),
+                    (Double) product.get("selling_price")
+                ));
+            }
+        }
+    }
+
+    private void exportInventoryToCSV(java.io.File file) throws IOException {
+        try (FileWriter writer = new FileWriter(file)) {
+            // Write CSV header
+            writer.write("Inventory ID,OR Number,Product ID,Product Name,Brand,Quantity,Unit Price,Total Price,Date Created\n");
+            
+            // Write data
+            List<Map<String, Object>> inventory = reportsController.getAllInventoryReport();
+            for (Map<String, Object> item : inventory) {
+                writer.write(String.format("%d,%s,%d,\"%s\",\"%s\",%d,%.2f,%.2f,%s\n",
+                    (Integer) item.get("inventory_id"),
+                    escapeCsv((String) item.get("or_number")),
+                    (Integer) item.get("product_id"),
+                    escapeCsv((String) item.get("product_name")),
+                    escapeCsv((String) item.get("product_brand")),
+                    (Integer) item.get("inventory_quantity"),
+                    (Double) item.get("unit_price"),
+                    (Double) item.get("inventory_price"),
+                    item.get("created_at").toString()
+                ));
+            }
+        }
+    }
+
+    private void exportSalesToCSV(java.io.File file) throws IOException {
+        try (FileWriter writer = new FileWriter(file)) {
+            // Write CSV header
+            writer.write("Sale ID,Product ID,Product Name,Brand,Sale Item,Quantity,Unit Price,Total Price,User,Sale Date\n");
+            
+            // Write data
+            List<Map<String, Object>> sales = reportsController.getAllSalesReport();
+            for (Map<String, Object> sale : sales) {
+                writer.write(String.format("%d,%d,\"%s\",\"%s\",\"%s\",%d,%.2f,%.2f,%s,%s\n",
+                    (Integer) sale.get("sale_id"),
+                    (Integer) sale.get("product_id"),
+                    escapeCsv((String) sale.get("product_name")),
+                    escapeCsv((String) sale.get("product_brand")),
+                    escapeCsv((String) sale.get("sale_item")),
+                    (Integer) sale.get("sale_quantity"),
+                    (Double) sale.get("sale_price"),
+                    (Double) sale.get("sale_total"),
+                    escapeCsv((String) sale.get("sale_user")),
+                    sale.get("sale_date").toString()
+                ));
+            }
+        }
+    }
+
+    private void exportTopSellingToCSV(java.io.File file) throws IOException {
+        try (FileWriter writer = new FileWriter(file)) {
+            // Write CSV header
+            writer.write("Product Name,Brand,Total Quantity Sold,Total Revenue,Sales Count\n");
+            
+            // Write data
+            List<Map<String, Object>> topProducts = reportsController.getTopSellingProducts(10);
+            for (Map<String, Object> product : topProducts) {
+                writer.write(String.format("\"%s\",\"%s\",%d,%.2f,%d\n",
+                    escapeCsv((String) product.get("product_name")),
+                    escapeCsv((String) product.get("product_brand")),
+                    (Integer) product.get("total_quantity"),
+                    (Double) product.get("total_revenue"),
+                    (Integer) product.get("sale_count")
+                ));
+            }
+        }
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        // Escape quotes by doubling them and wrap in quotes if contains comma, quote or newline
+        if (value.contains("\"") || value.contains(",") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 }
