@@ -1,3 +1,5 @@
+// src/Controller/DBContext.java
+package Controller;
 
 import java.sql.*;
 
@@ -6,21 +8,20 @@ public class DBContext {
     public static final String USER = "root";
     public static final String PASSWORD = "";
 
-    private static Connection connection = null;
-
+    // Remove static connection and create new connection each time
     public static Connection getConnection() {
-        if (connection == null) {
-            try {
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("Database Connection: ");
-            } catch (SQLException e) {
-                System.err.println("Database connection failed: " + e.getMessage());
-            }
+        try {
+            Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            System.out.println("Database Connection: Established");
+            return connection;
+        } catch (SQLException e) {
+            System.err.println("Database connection failed: " + e.getMessage());
+            return null;
         }
-        return connection;
     }
 
-    public static void closeConnection() {
+    // Optional: Close connection method for manual control
+    public static void closeConnection(Connection connection) {
         if (connection != null) {
             try {
                 connection.close();

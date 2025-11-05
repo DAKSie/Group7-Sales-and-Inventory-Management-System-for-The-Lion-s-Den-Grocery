@@ -1,9 +1,11 @@
 package View;
 
+import Model.User;
 import java.awt.Color;
+import java.sql.*;
 import javax.swing.*;
 
-public class LoginViewDesigner extends JFrame {
+public class LoginView extends JFrame {
     public static String _currentUser;
 
     private JTextField loginUsernameField;
@@ -11,7 +13,7 @@ public class LoginViewDesigner extends JFrame {
     private JButton loginLoginButton;
     private JButton loginRegisterButton;
 
-    public LoginViewDesigner () {
+    public LoginView() {
         setTitle("Login");
         setSize(370, 320);
         setResizable(false);
@@ -102,18 +104,112 @@ public class LoginViewDesigner extends JFrame {
         loginRegisterButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         loginRegisterButton.setHorizontalAlignment(SwingConstants.CENTER);
         add(loginRegisterButton);
-        loginRegisterButton.addActionListener(e  -> RegisterHandler());
+        loginRegisterButton.addActionListener(e -> RegisterHandler());
 
         setVisible(true);
     }
 
     private void RegisterHandler() {
         new RegisterView();
+        System.out.println("ASDASD");
         this.dispose();
     }
 
     private void LoginHandler() {
-        new MainWindowDesigner("Rico");
-        this.dispose();
+        String username = loginUsernameField.getText().trim();
+        String password = new String(loginPasswordField.getPassword()).trim();
+    
+        // Validate that fields are not empty
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Please enter both username and password", 
+                "Login Failed", 
+                JOptionPane.ERROR_MESSAGE);
+            return; // Stop execution if fields are empty
+        }
+    
+        User authenticatedUser = authenticateUser(username, password);
+        
+        if (authenticatedUser != null) {
+            _currentUser = authenticatedUser.getUserName();
+            JOptionPane.showMessageDialog(this, 
+                "Login successful! Welcome " + authenticatedUser.getUserName(), 
+                "Success", 
+                JOptionPane.INFORMATION_MESSAGE);
+            new MainWindow(_currentUser);
+            this.dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Invalid username or password", 
+                "Login Failed", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private User authenticateUser(String username, String password) {
+        String sql = "SELECT * FROM users WHERE user_username = ? AND user_password = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = getConnection();
+            if (conn == null) {
+                JOptionPane.showMessageDialog(this, 
+                    "Database connection failed", 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
+            
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
+            stmt.setString(2, password); // In production, use hashed passwords!
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new User(
+                    rs.getInt("user_id"),
+                    rs.getString("user_name"),
+                    rs.getString("user_phone"),
+                    rs.getString("user_username"),
+                    rs.getString("user_password")
+                );
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Database error during authentication: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, 
+                "Database error: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        } finally {
+            closeResources(stmt, conn, rs);
+        }
+        return null;
+    }
+
+    // Database connection method (similar to your DBContext)
+    private Connection getConnection() {
+        try {
+            String URL = "jdbc:mysql://localhost:3306/sims?serverTimezone=UTC";
+            String USER = "root";
+            String PASSWORD = "";
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (SQLException e) {
+            System.err.println("Database connection failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Resource cleanup method
+    private void closeResources(PreparedStatement stmt, Connection conn, ResultSet rs) {
+        try {
+            if (rs != null) rs.close();
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            System.err.println("Error closing resources: " + e.getMessage());
+        }
     }
 }

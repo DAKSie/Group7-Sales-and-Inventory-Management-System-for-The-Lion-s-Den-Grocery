@@ -1,6 +1,6 @@
 package Model;
 
-public class Sales {
+public class Sale {
     private int sale_id;
     private int product_id;
     private String sale_item;
@@ -9,7 +9,7 @@ public class Sales {
     private double sale_total;
     private String sale_user;
 
-    public Sales(int sale_id, int product_id, String sale_item, double sale_price, int sale_quantity, double sale_total, String sale_user) {
+    public Sale(int sale_id, int product_id, String sale_item, double sale_price, int sale_quantity, double sale_total, String sale_user) {
         this.sale_id = sale_id;
         this.product_id = product_id;
         this.sale_item = sale_item;
@@ -19,7 +19,7 @@ public class Sales {
         this.sale_user = sale_user;
     }
 
-    public Sales() {}
+    public Sale() {}
 
     // Getters and Setters
     public int getSaleId() { return sale_id; }

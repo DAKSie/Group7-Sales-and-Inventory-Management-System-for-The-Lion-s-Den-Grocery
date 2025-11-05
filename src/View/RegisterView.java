@@ -1,21 +1,20 @@
 package View;
 
 import java.awt.*;
+import java.sql.*;
 import javax.swing.*;
 
-public class RegisterView extends JFrame{
-    private JTextField empIdField;
+public class RegisterView extends JFrame {
     private JTextField nameField;
-    private JTextField ageField;
     private JTextField registerUsernameField;
     private JTextField contactField;
     private JPasswordField registerPasswordField;
     private JButton registerLoginButton;
     private JButton registerRegisterButton;
 
-    public RegisterView(){
+    public RegisterView() {
         setTitle("Register");
-        setSize(350, 520);
+        setSize(350, 420); // Reduced height since we removed fields
         setResizable(false);
         setLayout(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -45,22 +44,8 @@ public class RegisterView extends JFrame{
         int y = 120;
         int labelW = 100, labelH = 22, fieldW = 180, fieldH = 28, xLabel = 30, xField = 130;
 
-        // Employee ID
-        JLabel empIdLabel = new JLabel("Employee ID:");
-        empIdLabel.setBounds(xLabel, y, labelW, labelH);
-        empIdLabel.setFont(labelFont);
-        add(empIdLabel);
-
-        empIdField = new JTextField();
-        empIdField.setBounds(xField, y, fieldW, fieldH);
-        empIdField.setFont(fieldFont);
-        empIdField.setBackground(fieldColor);
-        empIdField.setBorder(BorderFactory.createLineBorder(borderColor, 1, true));
-        add(empIdField);
-
         // Name
-        y += 38;
-        JLabel nameLabel = new JLabel("Name:");
+        JLabel nameLabel = new JLabel("Full Name:");
         nameLabel.setBounds(xLabel, y, labelW, labelH);
         nameLabel.setFont(labelFont);
         add(nameLabel);
@@ -71,20 +56,6 @@ public class RegisterView extends JFrame{
         nameField.setBackground(fieldColor);
         nameField.setBorder(BorderFactory.createLineBorder(borderColor, 1, true));
         add(nameField);
-
-        // Age
-        y += 38;
-        JLabel ageLabel = new JLabel("Age:");
-        ageLabel.setBounds(xLabel, y, labelW, labelH);
-        ageLabel.setFont(labelFont);
-        add(ageLabel);
-
-        ageField = new JTextField();
-        ageField.setBounds(xField, y, fieldW, fieldH);
-        ageField.setFont(fieldFont);
-        ageField.setBackground(fieldColor);
-        ageField.setBorder(BorderFactory.createLineBorder(borderColor, 1, true));
-        add(ageField);
 
         // Contact Number
         y += 38;
@@ -99,21 +70,6 @@ public class RegisterView extends JFrame{
         contactField.setBackground(fieldColor);
         contactField.setBorder(BorderFactory.createLineBorder(borderColor, 1, true));
         add(contactField);
-
-        // Gender
-        y += 38;
-        JLabel genderLabel = new JLabel("Gender:");
-        genderLabel.setBounds(xLabel, y, labelW, labelH);
-        genderLabel.setFont(labelFont);
-        add(genderLabel);
-
-        String[] genders = {"Male", "Female", "Others", "Prefer not to say"};
-        JComboBox<String> genderComboBox = new JComboBox<>(genders);
-        genderComboBox.setBounds(xField, y, fieldW, fieldH);
-        genderComboBox.setFont(fieldFont);
-        genderComboBox.setBackground(fieldColor);
-        genderComboBox.setBorder(BorderFactory.createLineBorder(borderColor, 1, true));
-        add(genderComboBox);
 
         // Username
         y += 38;
@@ -152,9 +108,20 @@ public class RegisterView extends JFrame{
         registerRegisterButton.setForeground(buttonTextColor);
         registerRegisterButton.setFocusPainted(false);
         registerRegisterButton.setBorder(BorderFactory.createLineBorder(buttonColor, 1, true));
-        registerRegisterButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        registerRegisterButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Add hover effects
+        registerRegisterButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                registerRegisterButton.setBackground(new Color(0, 100, 220));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                registerRegisterButton.setBackground(buttonColor);
+            }
+        });
+        
         add(registerRegisterButton);
-        registerRegisterButton.addActionListener(e -> System.out.println("Register"));
+        registerRegisterButton.addActionListener(e -> RegisterHandler());
 
         // Login Button (as a link)
         y += 44;
@@ -164,7 +131,8 @@ public class RegisterView extends JFrame{
         registerLoginButton.setContentAreaFilled(false);
         registerLoginButton.setBorderPainted(false);
         registerLoginButton.setForeground(new Color(0, 122, 255));
-        registerLoginButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        registerLoginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
         add(registerLoginButton);
         registerLoginButton.addActionListener(e -> LoginHandler());
 
@@ -172,7 +140,135 @@ public class RegisterView extends JFrame{
     }
 
     private void LoginHandler() {
-        new LoginViewDesigner();
+        new LoginView();
         this.dispose();
+    }
+
+    private void RegisterHandler() {
+        String name = nameField.getText().trim();
+        String phone = contactField.getText().trim();
+        String username = registerUsernameField.getText().trim();
+        String password = new String(registerPasswordField.getPassword()).trim();
+
+        // Validation
+        if (name.isEmpty() || phone.isEmpty() || username.isEmpty() || password.isEmpty()) {
+            showError("Please fill in all required fields");
+            return;
+        }
+
+        if (password.length() < 6) {
+            showError("Password must be at least 6 characters long");
+            return;
+        }
+
+        if (!isValidPhone(phone)) {
+            showError("Please enter a valid phone number");
+            return;
+        }
+
+        // Check if username already exists
+        if (isUsernameTaken(username)) {
+            showError("Username already exists. Please choose a different one.");
+            return;
+        }
+
+        // Register the user
+        if (registerUser(name, phone, username, password)) {
+            JOptionPane.showMessageDialog(this, 
+                "Registration successful! You can now login.", 
+                "Success", 
+                JOptionPane.INFORMATION_MESSAGE);
+            new LoginView();
+            this.dispose();
+        } else {
+            showError("Registration failed. Please try again.");
+        }
+    }
+
+    private boolean isValidPhone(String phone) {
+        // Basic phone validation - adjust as needed
+        return phone.matches("^[0-9\\-\\+\\(\\)\\s]+$") && phone.length() >= 10;
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Registration Failed", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private boolean isUsernameTaken(String username) {
+        String sql = "SELECT user_id FROM users WHERE user_username = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = getConnection();
+            if (conn == null) return true; // Assume taken if connection fails
+            
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
+            rs = stmt.executeQuery();
+            
+            return rs.next(); // If there's a result, username is taken
+            
+        } catch (SQLException e) {
+            System.err.println("Error checking username: " + e.getMessage());
+            return true; // Assume taken on error
+        } finally {
+            closeResources(stmt, conn, rs);
+        }
+    }
+
+    private boolean registerUser(String name, String phone, String username, String password) {
+        String sql = "INSERT INTO users (user_name, user_phone, user_username, user_password) VALUES (?, ?, ?, ?)";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        
+        try {
+            conn = getConnection();
+            if (conn == null) {
+                showError("Database connection failed");
+                return false;
+            }
+            
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, name);
+            stmt.setString(2, phone);
+            stmt.setString(3, username);
+            stmt.setString(4, password); // In production, hash this password!
+            
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("Error registering user: " + e.getMessage());
+            showError("Database error: " + e.getMessage());
+            return false;
+        } finally {
+            closeResources(stmt, conn, null);
+        }
+    }
+
+    // Database connection method
+    private Connection getConnection() {
+        try {
+            String URL = "jdbc:mysql://localhost:3306/sims?serverTimezone=UTC";
+            String USER = "root";
+            String PASSWORD = "";
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (SQLException e) {
+            System.err.println("Database connection failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Resource cleanup method
+    private void closeResources(PreparedStatement stmt, Connection conn, ResultSet rs) {
+        try {
+            if (rs != null) rs.close();
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            System.err.println("Error closing resources: " + e.getMessage());
+        }
     }
 }
