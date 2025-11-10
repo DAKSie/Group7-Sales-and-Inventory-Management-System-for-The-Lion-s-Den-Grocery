@@ -49,34 +49,56 @@ This application is designed for small grocery stores, providing an easy way to 
 
 ## Installation
 
-1. **Clone the Repository:**
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/DAKSie/Group7-Sales-and-Inventory-Management-System-for-The-Lion-s-Den-Grocery.git
    cd Group7-Sales-and-Inventory-Management-System-for-The-Lion-s-Den-Grocery
    ```
 
-2. **Run the migrations script**
-    ```bash
-    py migrations\SimsSchema.py       
-    ```
+2. **Run the Database Migrations**
+   Initialize the local SQLite schema.
+   - On Windows (PowerShell or CMD):
+     ```bash
+     py migrations\SimsSchema.py
+     ```
+   - On macOS/Linux:
+     ```bash
+     python3 migrations/SimsSchema.py
+     ```
+     If `python3` isn’t available, try:
+     ```bash
+     python migrations/SimsSchema.py
+     ```
 
-3. **Build the Java Application:** <br>
-    We have implemented a run script for 
-    
-    windows:
-    ```bash
-    compile_and_run_windows
-    ```
-    
-    bash:
-    ```bash
-    ./compile_and_run_bash.sh
-    ```
+3. **(Optional) Seed the Database with Example Data**
+   If you’d like to explore the app with sample data for testing, use the available seed script (if provided) in the repository.
+   - On Windows:
+     ```bash
+     py path\to\your\seed_script.py
+     ```
+   - On macOS/Linux:
+     ```bash
+     python3 path/to/your/seed_script.py
+     ```
+   Note: If a dedicated seed script isn’t provided, you can manually add a few items and sales via the app UI after launch.
 
-4. **(Optional) Set Up Python Scripts:**
-   - If you want enhanced reporting (see [CSV Reporting](#csv-reporting)), ensure you have Python 3+ installed.
+4. **Build and Run the Java Application**
+   We have implemented run scripts for convenience.
 
-5. **Run:**
+   - Windows:
+     ```bash
+     compile_and_run_windows
+     ```
+
+   - Bash:
+     ```bash
+     ./compile_and_run_bash.sh
+     ```
+
+5. **(Optional) Set Up Python Scripts**
+   If you want enhanced reporting (see [CSV Reporting](#csv-reporting)), ensure you have Python 3+ installed.
+
+6. **Run**
    - Windows: double-click the provided batch file(s) or execute from terminal.
    - Other OS: run the Java application as per above.
 
@@ -90,39 +112,26 @@ This application is designed for small grocery stores, providing an easy way to 
   - Record each transaction, specifying purchased items and quantities.
 - **Reporting:**
   - Select "Generate Report" to save sales/inventory reports as CSV files.
-- **No Internet Needed:** All actions are performed and stored locally.
 
 ---
 
 ## CSV Reporting
 
-- Choose where to export your CSV file.
-- Format follows:  
-  - Sales: Date, Item, Quantity Sold, Price, Total
-  - Inventory: Item, Current Stock, Unit Price, Last Updated
-- Use provided Python utilities (see `scripts/`) to further analyze, filter, or visualize reports.
+- Export sales and inventory data to CSV files for external analysis or archival.
+- Make sure the target directory has write permissions.
+- Optional Python utilities can be used to post-process or aggregate CSV outputs.
 
 ---
 
 ## Architecture
 
-- **Java:** Main application logic, UI, and data storage
-- **Python:** Optional analytics and enhanced reporting scripts
-- **Batchfile:** Windows automation for launching the app and managing data
-- **Bashfile:** Automation for launching the application and managing
-- **Data Storage:** CSV files (readable, editable, and portable)
+- **Core Application:** Java-based desktop application.
+- **Persistence:** Local database (initialized via `migrations/SimsSchema.py`).
+- **Utilities:** Optional Python scripts for reporting or automation.
+- **Scripts:** Convenience scripts for building and running on Windows and Bash environments.
 
 ---
+
 ## Contributing
 
-Contributions, suggestions, and bug reports are welcome!
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-> Made with ❤️ by Group 7
+Contributions are welcome! Please open an issue to discuss changes or submit a pull request with a clear description of your updates. For larger changes, consider proposing them first to align on approach.
