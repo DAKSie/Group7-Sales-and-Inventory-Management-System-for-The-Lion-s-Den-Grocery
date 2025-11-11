@@ -71,7 +71,7 @@ This application is designed for small grocery stores, providing an easy way to 
      ```
 
 3. **(Optional) Seed the Database with Example Data**
-   If you’d like to explore the app with sample data for testing, use the available seed script (if provided) in the repository.
+   If you’d like to explore the app with sample data for testing, use the available seed script in the repository.
    - On Windows:
      ```bash
      py path\to\your\seed_script.py
@@ -119,7 +119,6 @@ This application is designed for small grocery stores, providing an easy way to 
 
 - Export sales and inventory data to CSV files for external analysis or archival.
 - Make sure the target directory has write permissions.
-- Optional Python utilities can be used to post-process or aggregate CSV outputs.
 
 ---
 
