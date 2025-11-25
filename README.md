@@ -134,3 +134,7 @@ This application is designed for small grocery stores, providing an easy way to 
 ## Contributing
 
 Contributions are welcome! Please open an issue to discuss changes or submit a pull request with a clear description of your updates. For larger changes, consider proposing them first to align on approach.
+
+
+Bash and Batch scripts made because groupmates are not able to compile and run the application lol
+shoulda made this with gradle
